@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Productsnap</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="dialog_asktitle">Settings</string>
+    <string name="dialog_ok">Confirmer</string>
+    <string name="dialog_cancel">Annuler</string>
+
+</resources>

@@ -8,16 +8,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.util.Log;
-import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,45 +22,26 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.org.apache.http.concurrent.FutureCallback;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.koushikdutta.ion.Ion;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 
 public class MainActivity extends Activity {
@@ -184,9 +161,7 @@ public class MainActivity extends Activity {
                     request.addHeader("Authorization", "API_TOKEN"); //replace with api Authorization token
                     request.addHeader("Content-Type", "application/json");
                     request.setEntity(body);
-                    response = client.execute(request);
-                    /*HttpEntity entity = response.getEntity();
-                    String responseString = EntityUtils.toString(entity, "UTF-8");*/
+                    client.execute(request);
            } catch (Exception e) {
                     Log.e("Productsnap", "exception", e);
                 } finally {
@@ -205,6 +180,13 @@ public class MainActivity extends Activity {
         c.setTime(new Date());
         c.add(Calendar.DATE, duration);
         return (sdf.format(c.getTime()));
+    }
+
+    private void returnHome() {
+        Intent main = new Intent(Intent.ACTION_MAIN);
+        main.addCategory(Intent.CATEGORY_HOME);
+        main.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(main);
     }
 
     public void clickSendDeal(View view) {
@@ -236,6 +218,7 @@ public class MainActivity extends Activity {
             else
                 Toast.makeText(this, R.string.toast_processErr, Toast.LENGTH_SHORT).show();
         }
+        returnHome();
     }
 
     @Override

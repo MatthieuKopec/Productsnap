@@ -5,11 +5,13 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -66,8 +68,11 @@ import java.util.concurrent.TimeoutException;
 
 
 public class MainActivity extends Activity {
+
     String mFileName = "pic.jpg";
     String mDealDir = "";
+    String mCurrentPhotoPath;
+
     EditText mQuantity;
     EditText mDuration;
     EditText mPrice;
@@ -76,10 +81,23 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
         mQuantity = (EditText) findViewById(R.id.deal_quantity);
         mDuration = (EditText) findViewById(R.id.deal_duration);
         mPrice = (EditText) findViewById(R.id.deal_price);
-        dispatchTakePictureIntent();
+
+        mFileName = settings.getString("filename", null);
+        mCurrentPhotoPath = settings.getString("filepath", null);
+
+        File imgFile = new File(mCurrentPhotoPath);
+        if (imgFile.exists()) {
+            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            ImageView myImage = (ImageView) findViewById(R.id.imageTest);
+            myImage.setImageBitmap(myBitmap);
+        }
+
+        askTitleImage();
     }
 
     private void execTask() {
@@ -87,7 +105,8 @@ public class MainActivity extends Activity {
         task.execute();
     }
 
-    private void askTitleImage(final File imgFile) {
+    private void askTitleImage() {
+        final File imgFile = new File(mCurrentPhotoPath);
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setMessage(getString(R.string.dialog_asktitle));
 
@@ -108,61 +127,11 @@ public class MainActivity extends Activity {
 
         alert.setNegativeButton(getString(R.string.dialog_cancel), new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
-                dispatchTakePictureIntent();
+                execTask();
             }
         });
 
         alert.show();
-    }
-
-    String mCurrentPhotoPath;
-
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,
-                ".jpg",
-                storageDir
-        );
-        mCurrentPhotoPath = image.getAbsolutePath();
-        mFileName = imageFileName;
-        System.out.println(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getAbsolutePath());
-        return image;
-    }
-
-    static final int REQUEST_TAKE_PHOTO = 1;
-
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Log.e("Productsnap", "exception", ex);
-            }
-            if (photoFile != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-        }
-    }
-
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            File imgFile = new File(mCurrentPhotoPath);
-            if (imgFile.exists()) {
-                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-
-                ImageView myImage = (ImageView) findViewById(R.id.imageTest);
-
-                myImage.setImageBitmap(myBitmap);
-                askTitleImage(imgFile);
-            }
-        }
     }
 
     private class UploadFileTask extends AsyncTask<Void, Void, Integer> {
@@ -173,6 +142,7 @@ public class MainActivity extends Activity {
             mContext = c;
         }
         protected Integer doInBackground(Void... param) {
+
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String imageDirName = "DEAL_" + timeStamp;
             String directory = "deals";
@@ -200,6 +170,7 @@ public class MainActivity extends Activity {
             mContext = c;
         }
         protected Integer doInBackground(DealFactory... params) {
+
             int count = params.length;
             DealFactory current;
             HttpClient client = new DefaultHttpClient();
@@ -228,6 +199,7 @@ public class MainActivity extends Activity {
     }
 
     private String expireDate(int duration) {
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Calendar c = Calendar.getInstance();
         c.setTime(new Date());
@@ -236,10 +208,12 @@ public class MainActivity extends Activity {
     }
 
     public void clickSendDeal(View view) {
+
         String quantity = mQuantity.getText().toString();
         String duration = mDuration.getText().toString();
         String price = mPrice.getText().toString();
         String filename = mFileName;
+
         if (mFileName.indexOf(".") > 0)
             filename = mFileName.substring(0, mFileName.lastIndexOf("."));
         if (quantity.matches("") || duration.matches("") || price.matches(""))
@@ -270,8 +244,6 @@ public class MainActivity extends Activity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
-
-    static final int REQUEST_IMAGE_CAPTURE = 1;
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
 
     private void execTask() {
         UploadFileTask task = new UploadFileTask(this);
-        task.execute();
+        //task.execute();
     }
 
     private void askTitleImage() {
